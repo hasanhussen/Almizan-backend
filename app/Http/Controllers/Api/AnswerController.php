@@ -15,6 +15,7 @@ use App\Models\Result;
 use App\Models\UserExam;
 use App\Models\Subject;
 use App\Models\SubjectResult;
+use Carbon\Carbon;
 
 
 class AnswerController extends Controller
@@ -36,6 +37,19 @@ class AnswerController extends Controller
         $correctCount = 0;
         $wrongCount = 0;
         $totalCorrectMarks = 0;
+
+        // $examEndTime = Carbon::parse($exam->end_time);
+        $examEndTime = Carbon::parse($exam->exam_date . ' ' . $exam->end_time, 'Asia/Damascus');
+        $marginSeconds = 120; // 2 دقائق
+        $allowedSubmitTime = $examEndTime->addSeconds($marginSeconds);
+        $now = Carbon::now('Asia/Damascus');
+
+        if ($now->gt($allowedSubmitTime)) {
+            return response()->json([
+                'message' => 'انتهى وقت الامتحان ولم يعد بإمكانك التسليم',
+            ], 403);
+        }
+
 
         DB::transaction(function () use (
             $request,
@@ -93,8 +107,7 @@ class AnswerController extends Controller
                 'user_id' => $userId,
                 'exam_id' => $exam->id,
             ],
-            'is_submitted',
-            '2'
+            ['is_submitted' => '2']
         );
 
         // إذا كان الامتحان Final، نجمع كل درجات الطالب في المادة

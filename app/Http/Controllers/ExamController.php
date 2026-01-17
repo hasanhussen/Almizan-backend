@@ -155,17 +155,21 @@ class ExamController extends Controller
                 'is_submitted'  => '2',
             ]);
 
-            Result::updateOrCreate(
-                [
-                    'user_id' => $userExam->user_id,
-                    'subject_id' => $exam->subject_id,
-                    'exam_id' => $exam->id,
-                ],
-                [
-                    'exam_degree' => 0,
-                    'is_passed' => false,
-                ]
-            );
+                $result = Result::where([
+        'user_id' => $userExam->user_id,
+        'subject_id' => $exam->subject_id,
+        'exam_id' => $exam->id,
+    ])->first();
+
+    // إذا ما عنده نتيجة، بس ساعتها ننشئها
+    if (!$result) {
+        Result::create([
+            'user_id' => $userExam->user_id,
+            'subject_id' => $exam->subject_id,
+            'exam_id' => $exam->id,
+            'exam_degree' => 0,
+            'is_passed' => false,
+        ]);
         }
 
         return back()->with('success', 'Exam ended successfully.');
@@ -296,6 +300,12 @@ class ExamController extends Controller
             'start_time' => 'nullable|date_format:H:i',
             'end_time'   => 'nullable|date_format:H:i|after:start_time',
         ]);
+
+        // $now = Carbon::now('Asia/Damascus');
+        // $startDateTime = Carbon::parse($exam->exam_date . ' ' . $request->start_time, 'Asia/Damascus');
+        // if($startDateTime->gte($now) && $exam->exam_status != '0') {
+        //     $data['exam_status'] = '0';
+        // }
 
         $exam->update($data);
 

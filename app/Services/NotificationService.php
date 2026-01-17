@@ -12,6 +12,10 @@ use App\Notifications\OrderNotification;
 use Illuminate\Support\Facades\Notification;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Exception\Messaging\NotFound;
+use Kreait\Firebase\Exception\Messaging\InvalidArgument;
+use Illuminate\Support\Facades\Log;
+
 
 class NotificationService
 {
@@ -49,35 +53,82 @@ class NotificationService
         $this->firebase->send($message);
     }
 
-
-
     public function sendToUser($user, $title, $body, $data = [])
     {
+        if (!$user) {
+            return;
+        }
+
         $fcmTokens = $user->fcmTokens()->pluck('token')->toArray();
 
-        if ($user && count($fcmTokens) > 0) {
+        if (empty($fcmTokens)) {
+            return;
+        }
 
-            $firebase = (new Factory)
-                ->withServiceAccount(config('services.firebase.credentials'))
-                ->createMessaging();
+        $firebase = (new Factory)
+            ->withServiceAccount(config('services.firebase.credentials'))
+            ->createMessaging();
 
-            // 🔒 تأمين القيم (كلها string)
-            $data = collect($data)->map(function ($value) {
-                return (string) ($value ?? '');
-            })->toArray();
+        // 🔒 تأمين القيم (كلها string)
+        $data = collect($data)->map(fn($v) => (string) ($v ?? ''))->toArray();
 
-            foreach ($fcmTokens as $token) {
+        foreach ($fcmTokens as $token) {
+            try {
                 $message = [
                     'token' => $token,
                     'notification' => [
                         'title' => $title,
                         'body'  => $body,
                     ],
-                    'data' => $data
+                    'data' => $data,
                 ];
 
                 $firebase->send($message);
+            } catch (NotFound | InvalidArgument $e) {
+                // 🧹 حذف التوكن غير الصالح
+                $user->fcmTokens()->where('token', $token)->delete();
+            } catch (\Throwable $e) {
+                // أي خطأ غير متوقع (ما نوقف النظام)
+                Log::error('FCM send error', [
+                    'user_id' => $user->id,
+                    'token'   => $token,
+                    'error'   => $e->getMessage(),
+                ]);
             }
         }
     }
+
+    // public function sendToUser($user, $title, $body, $data = [])
+    // {
+    //     $fcmTokens = $user->fcmTokens()->pluck('token')->toArray();
+
+    // if (!$user || empty($fcmTokens)) {
+    //     return;
+    // }
+
+    //     if ($user && count($fcmTokens) > 0) {
+
+    //         $firebase = (new Factory)
+    //             ->withServiceAccount(config('services.firebase.credentials'))
+    //             ->createMessaging();
+
+    //         // 🔒 تأمين القيم (كلها string)
+    //         $data = collect($data)->map(function ($value) {
+    //             return (string) ($value ?? '');
+    //         })->toArray();
+
+    //         foreach ($fcmTokens as $token) {
+    //             $message = [
+    //                 'token' => $token,
+    //                 'notification' => [
+    //                     'title' => $title,
+    //                     'body'  => $body,
+    //                 ],
+    //                 'data' => $data
+    //             ];
+
+    //             $firebase->send($message);
+    //         }
+    //     }
+    // }
 }
