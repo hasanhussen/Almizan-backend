@@ -187,6 +187,5 @@ This backend represents the **core system** of the academy, providing:
 - Password reset via email code
 - Role-based authorization
 
-
-php artisan migrate --seed
-php artisan serve
+This project is the backend for a Flutter application.
+Flutter project link: https://github.com/hasanhussen/Almizan-app
