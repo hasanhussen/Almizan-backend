@@ -18,6 +18,11 @@ This backend represents the **core system** of the academy, providing:
 
 ## 🖼️ Dashboard Screenshots
 
+**Login**
+<p align="center">
+    <img width="1920" height="956" alt="Screenshot (631)" src="https://github.com/user-attachments/assets/528ed4c2-24cf-43da-9985-0ca810459535" />
+</p>
+
 **Users**
 <p align="center">
   <img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/03390964-12ec-47e3-a2ac-881c5a5cc1a2" />
