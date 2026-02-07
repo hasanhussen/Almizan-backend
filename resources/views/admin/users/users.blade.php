@@ -173,10 +173,14 @@
                                                 {{ $student->revoked_status == '1' ? 'Revoke' : 'Unrevoke' }}
                                             </button>
 
+                                            @if (auth()->user()->hasRole('admin'))
+
                                             <button type="button" class="btn btn-sm btn-danger btn-delete-student m-0"
                                                 data-id="{{ $student->id }}">
                                                 Delete
                                             </button>
+
+                                            @endif
                                         </div>
                                     </td>
 

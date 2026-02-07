@@ -26,8 +26,8 @@ class RegisterRequest extends FormRequest
             'email' => 'required|string|max:255|unique:users,email,',
             'role' => 'sometimes|string|in:admin,supervisor,teacher,student',
             'password' => 'required|string|min:8|confirmed',
-            'image'    => 'required_if:role,student|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
-            'year' => 'sometimes|string|in:1st,2nd,3rd,4th',
+            'image' => 'required_if:role,student|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+            'year' => 'required_if:role,student|nullable|string|in:1st,2nd,3rd,4th',
         ];
     }
 }
